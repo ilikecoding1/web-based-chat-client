@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Online Chat Client</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f2f2f2; }
+        #log { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; background: #fff; }
+        #msg, #server { width: 80%; padding: 8px; margin: 5px 0; }
+        button { padding: 8px 12px; margin-left: 5px; }
+    </style>
+</head>
+<body>
+    <h2>Web Chat Client</h2>
+
+    <label>Server URL:</label>
+    <input type="text" id="server" value="https://1cdd0bfd-0eb2-4118-b3f5-dd08d10cd33a-00-cb4qy7rl0u17.picard.replit.dev" />
+    <button onclick="updateServer()">Update</button>
+
+    <div id="log"></div>
+
+    <input type="text" id="msg" placeholder="Type a message" />
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+        let SERVER = document.getElementById("server").value;
+
+        function updateServer() {
+            SERVER = document.getElementById("server").value;
+            addLog("Server URL updated to: " + SERVER);
+        }
+
+        function addLog(text) {
+            const log = document.getElementById("log");
+            log.innerHTML += text + "<br>";
+            log.scrollTop = log.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const msg = document.getElementById("msg").value;
+            if (!msg) return;
+            try {
+                await fetch(SERVER + "/from_client", {
+                    method: "POST",
+                    headers: {"Content-Type":"application/json"},
+                    body: JSON.stringify({message: msg})
+                });
+                addLog("You: " + msg);
+            } catch {
+                addLog("Error: Cannot reach server");
+            }
+            document.getElementById("msg").value = "";
+        }
+
+        async function listenServer() {
+            try {
+                const res = await fetch(SERVER + "/to_client");
+                const data = await res.json();
+                if (data.message) addLog("Server: " + data.message);
+            } catch {}
+        }
+
+        setInterval(listenServer, 1000);
+    </script>
+</body>
+</html>
